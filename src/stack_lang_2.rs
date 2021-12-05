@@ -48,8 +48,8 @@ struct Parameter {
 }
 const KEYWORDS: [&str; 6] = ["Def", "As", "Exit", "If", "Then", "Else"];
 
-const SYMBOLS: [&str; 13] = [
-    "+", "-", "*", "/", "%", "=", "=>", "==", "!=", ">", "<", "<=", "=>",
+const SYMBOLS: [&str; 16] = [
+    "+", "-", "*", "/", "%", "=", "=>", "==", "!=", ">", "<", "<=", "=>", "&&", "||", "!",
 ];
 #[derive(Debug)]
 pub enum SyntaxParseError {
@@ -133,7 +133,7 @@ impl Engine {
         } else {
             return Err(SyntaxParseError::InvalidExprStatement);
         }
-        println!("{:#?}", self);
+        //        println!("{:#?}", self);
         Ok(())
     }
 
@@ -353,7 +353,13 @@ impl Engine {
         let length = self.global_stack.len();
         while let Some(token) = self.global_stack.pop() {
             match token {
-                Tokens::Literal(literal) => self.expr_storage.push(Tokens::Literal(literal)),
+                Tokens::Literal(literal) => {
+                    if length == 1 {
+                        result = literal.value;
+                        continue;
+                    }
+                    self.expr_storage.push(Tokens::Literal(literal));
+                }
                 Tokens::Symbol(sym) => {
                     result = self.sym_eval(sym)?;
                     self.expr_storage
@@ -520,6 +526,20 @@ impl Engine {
                     0
                 }
             }
+            "&&" => {
+                if a > 0 && b > 0 {
+                    1
+                } else {
+                    0
+                }
+            }
+            "||" => {
+                if a == 0 && b == 0 {
+                    0
+                } else {
+                    1
+                }
+            }
             _ => return Err(SyntaxParseError::InvalidExprStatement),
         };
         Ok(result)
@@ -565,6 +585,32 @@ impl Engine {
                 var.value = Some(b1);
                 self.variable_stack.push(var);
                 Ok(b1)
+            }
+            "!" => {
+                if self.expr_storage.len() < 1 {
+                    return Err(SyntaxParseError::InvalidNumberOfArguments);
+                }
+                let a = self.expr_storage.pop().unwrap();
+                let a = match a {
+                    Tokens::Literal(lit) => lit.value,
+
+                    Tokens::Variable(mut var) => {
+                        for v in &self.variable_stack {
+                            if v.name == var.name {
+                                var.value = v.value;
+                            }
+                        }
+                        if var.value.is_none() {
+                            return Err(SyntaxParseError::InvalidVariableName);
+                        }
+                        var.value.unwrap()
+                    }
+                    _ => {
+                        return Err(SyntaxParseError::InvalidExprStatement);
+                    }
+                };
+                let res = if a == 0 { 1 } else { 0 };
+                Ok(res)
             }
             _ => self.sym_eval_ari_log_op(sym),
         }
