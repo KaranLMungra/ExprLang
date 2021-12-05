@@ -1,0 +1,9 @@
+GlobalSyntaxStack
+2 3 + y =
+= y + 3 2
+Variable Stack = [ans = 5, y = 0]
+Function Stack = [+ - * / % =]
+Literal Stack = [5]
+
+
+

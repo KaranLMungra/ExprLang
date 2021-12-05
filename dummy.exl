@@ -1,0 +1,16 @@
+2 x =
+4 y =
+6 z =
+Def sq As x => x x *
+2 sq rsq =
+Def cube As x => x sq x *
+2 cube rcu =
+Def sqcube As x y => x sq y * y sq x * +
+1 2 sqcube rsqcu =
+Def cubed As x y z => x cube y cube + z cube + x y sqcube + y z sqcube + x z sqcube + x y * z * +
+1 2 3 cubed rscub =
+rsq
+rcu
+rsqcu
+rscub
+Exit
